@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emberkeep — Tower Defense</title>
+<link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+<div id="app">
+  <!-- HUD bar -->
+  <div id="hud">
+    <div class="hud-item"><span class="hud-label">Gold</span><span id="hud-gold" class="hud-value gold">220</span></div>
+    <div class="hud-item"><span class="hud-label">Wave</span><span id="hud-wave" class="hud-value">—</span></div>
+    <div class="hud-item"><span class="hud-label">Crystal</span><span id="hud-lives" class="hud-value hp">20</span></div>
+    <div class="hud-item"><span class="hud-label">Score</span><span id="hud-score" class="hud-value">0</span></div>
+    <div class="hud-item"><span class="hud-label">Best</span><span id="hud-best" class="hud-value">0</span></div>
+    <div class="hud-item"><span class="hud-label">Foes left</span><span id="hud-enemies" class="hud-value">—</span></div>
+    <div class="hud-spacer"></div>
+    <button id="pause-btn" class="hud-btn">Pause (P)</button>
+    <button id="mute-btn" class="hud-btn">Sound: ON (M)</button>
+  </div>
+
+  <!-- Game canvas -->
+  <canvas id="game" width="1280" height="600"></canvas>
+
+  <!-- Tower bar -->
+  <div id="towerbar">
+    <button id="tower-ember" class="tower-btn" style="--tc:#ff9a3c">
+      <span class="t-name">Ember <span class="t-key">1</span></span>
+      <span class="t-cost">50g</span>
+      <span class="t-desc">Fast shots</span>
+    </button>
+    <button id="tower-frost" class="tower-btn" style="--tc:#7dd3fc">
+      <span class="t-name">Frost <span class="t-key">2</span></span>
+      <span class="t-cost">70g</span>
+      <span class="t-desc">Slows foes</span>
+    </button>
+    <button id="tower-storm" class="tower-btn" style="--tc:#c084fc">
+      <span class="t-name">Storm <span class="t-key">3</span></span>
+      <span class="t-cost">100g</span>
+      <span class="t-desc">Chain lightning</span>
+    </button>
+    <button id="tower-thorn" class="tower-btn" style="--tc:#86efac">
+      <span class="t-name">Thorn <span class="t-key">4</span></span>
+      <span class="t-cost">120g</span>
+      <span class="t-desc">Long range, big hits</span>
+    </button>
+    <button id="wave-btn" class="wave-btn">Start wave 1 (Space)</button>
+    <!-- Selected tower panel -->
+    <div id="tower-panel" class="hidden">
+      <span id="panel-name">Tower</span>
+      <span id="panel-stats"></span>
+      <button id="panel-upgrade" class="panel-btn">Upgrade</button>
+      <button id="panel-sell" class="panel-btn">Sell</button>
+      <button id="panel-close" class="panel-btn">✕</button>
+    </div>
+  </div>
+
+  <!-- Title overlay -->
+  <div id="overlay-title" class="overlay">
+    <h1 class="game-title">EMBERKEEP</h1>
+    <p class="tagline">Defend the last ember crystal of a dying world.</p>
+    <p class="best-line">Best score: <span id="title-best">0</span></p>
+    <button id="start-btn" class="big-btn">▶ Start game</button>
+    <button id="how-btn" class="big-btn secondary">How to play</button>
+    <div id="how-panel" class="hidden">
+      <p><b>Goal:</b> stop the Hollows from reaching the crystal. Survive all 20 waves to win.</p>
+      <p><b>Build:</b> pick a tower (click or keys 1–4), then click the map to place it. Click a tower to upgrade or sell it.</p>
+      <p><b>Waves:</b> press Space or the wave button to start. Call a wave early for bonus gold.</p>
+      <p><b>Keys:</b> 1–4 towers · Space start wave · P pause · R restart · M mute · right-click cancels.</p>
+      <p><b>Towers:</b> Ember is fast, Frost slows, Storm chains lightning, Thorn hits hard from far away.</p>
+    </div>
+  </div>
+
+  <!-- Pause overlay -->
+  <div id="overlay-pause" class="overlay hidden">
+    <h2>Paused</h2>
+    <p>The Hollows wait. The ember does not.</p>
+    <button id="resume-btn" class="big-btn">Resume (P)</button>
+    <button id="restart-btn" class="big-btn secondary">Restart (R)</button>
+  </div>
+
+  <!-- Victory overlay -->
+  <div id="overlay-victory" class="overlay hidden">
+    <h2 class="win">VICTORY</h2>
+    <p>The ember burns on. The Hollow King is broken.</p>
+    <div class="stats-grid">
+      <div><span class="stat-label">Waves survived</span><span id="victory-waves" class="stat-value">20</span></div>
+      <div><span class="stat-label">Kills</span><span id="victory-kills" class="stat-value">0</span></div>
+      <div><span class="stat-label">Score</span><span id="victory-score" class="stat-value">0</span></div>
+      <div><span class="stat-label">Accuracy</span><span id="victory-acc" class="stat-value">0%</span></div>
+      <div><span class="stat-label">Best score</span><span id="victory-best" class="stat-value">0</span></div>
+    </div>
+    <button id="victory-again" class="big-btn">▶ Play again (R)</button>
+  </div>
+
+  <!-- Defeat overlay -->
+  <div id="overlay-defeat" class="overlay hidden">
+    <h2 class="lose">THE EMBER DIES</h2>
+    <p>The Hollows overran the crystal. The world goes dark — for now.</p>
+    <div class="stats-grid">
+      <div><span class="stat-label">Waves survived</span><span id="defeat-waves" class="stat-value">0</span></div>
+      <div><span class="stat-label">Kills</span><span id="defeat-kills" class="stat-value">0</span></div>
+      <div><span class="stat-label">Score</span><span id="defeat-score" class="stat-value">0</span></div>
+      <div><span class="stat-label">Accuracy</span><span id="defeat-acc" class="stat-value">0%</span></div>
+      <div><span class="stat-label">Best score</span><span id="defeat-best" class="stat-value">0</span></div>
+    </div>
+    <button id="defeat-again" class="big-btn">▶ Try again (R)</button>
+  </div>
+</div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
